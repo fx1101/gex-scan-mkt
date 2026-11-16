@@ -2,7 +2,7 @@
 
 Research tool for dealer-style gamma exposure (GEX) on US listed options. The working package name is `gex-scanner`. This repository is the product; it is not nested under another directory.
 
-Phases 0 and 1 are in this tree: the project scaffold, the methodology docs, and an offline GEX engine. Later phases (flip repricing, live vendors, the session clock, ranking, TradingView, backtests) are not started.
+Phases 0 through 2 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, and flip repricing on a spot grid. Later phases (live vendors, the session clock, ranking, TradingView, backtests) are not started.
 
 This is not an auto-trader. There is no order-placement code. Do not put production Webull keys in the environment for this phase. Sandbox is the default written in `.env.example` for a later adapter.
 

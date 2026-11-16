@@ -10,7 +10,7 @@ This file is the normative description of the GEX math. The implementation follo
 | Dealer sign | Implemented |
 | Strikes, walls, expiry filters, 0DTE share | Implemented |
 | Quality rules | Implemented |
-| Zero-gamma / flip by repricing | Specified only. Not implemented. |
+| Zero-gamma / flip by repricing | Implemented |
 | Vanna / charm | Specified only. `enable_second_order` defaults off and refuses `true`. |
 | Pre-registered historical tests | Specified only. Not implemented. No history is fabricated. |
 
@@ -73,6 +73,8 @@ Walls are not moved to sit on a chosen side of spot. If both walls are above spo
 
 `spot_side` on a wall is `above`, `below`, or `at`.
 
+Walls use the active expiry view. A `0dte` view and an `all` view of the same snapshot can name different strikes. The engine does not force those walls to match.
+
 **Expiry filters**
 
 | Filter | Rule |
@@ -93,19 +95,48 @@ The default aggregation is an unweighted sum. 0DTE is not scaled by `1/sqrt(T)` 
 
 `net_gex` on the result is the active view, after the filter.
 
-## 4. Zero-gamma / flip (not implemented)
+## 4. Zero-gamma / flip
 
-Do not define the flip as the listed strike whose net GEX is closest to zero.
+`compute_flip` reprices the active expiry view. The flip is not the listed strike whose net GEX is closest to zero. A result with no in-band crossing has `primary_flip = null` and `no_crossing_in_band = true`. No listed strike is substituted.
 
-When this is built, compute it by repricing:
+**Grid.** The default band is ±15% of the snapshot spot (`flip_band = 0.15`), the top of the specified ±10% to ±15% range. The default grid has 301 points, which must stay an odd integer of at least 3 so the center node is the snapshot spot. The step is `2 * flip_band * spot / (grid_points - 1)`. At spot 100 that step is 0.10 underlying points. The center node is forced to the exact snapshot spot.
 
-1. For each included contract with a usable IV, recompute Black-Scholes / Merton gamma on a grid of hypothetical spots. Default band: document the chosen span inside ±10% to ±15% around the current spot, with a step fine enough to interpolate.
-2. Hold each contract's IV, strike, rate, dividend or yield (or implied forward), and time-to-expiry fixed at the snapshot. Document the rate (a named convention such as SOFR, or a config constant) and the day-count for T. If vendor gamma at the current spot disagrees with Black-Scholes gamma by more than a stated tolerance, keep the vendor gamma at the current spot, use Black-Scholes only off spot, and record the residual.
-3. At each hypothetical spot S, recompute signed GEX using that S both in gamma and in the `S^2 * 0.01` scale. Do not mix a gamma computed at S with a scale computed at the original spot.
-4. The flip is the interpolated S where net GEX crosses zero. Return every in-band crossing. Mark the crossing nearest the snapshot spot as `primary_flip`. If net GEX does not cross inside the band, say so. Do not invent a flip.
-5. At the observed spot, the curve must agree with current-spot net GEX within a documented tolerance.
+**What stays fixed.** IV, strike, rate, dividend yield, and time-to-expiry stay at the snapshot while spot moves.
 
-No flip function is exported in this release.
+- Rate is the config constant `risk_free_rate`. The default is 0. It is not a live SOFR print.
+- Dividend yield is the contract's `dividend_yield` when set, otherwise the config constant `dividend_yield` (default 0). The same yield on every leg does not move a zero that comes from equal call and put weights, because `exp(-q T)` is common.
+- Day-count is ACT/365. An explicit `time_years` on the contract wins. Otherwise `T = dte / 365`. DTE 0 uses `zero_dte_time_years` (default `1/365`, one calendar day). There is no session clock in this phase, and `T = 0` is not used because Black-Scholes gamma is undefined there.
+
+**Gamma at the snapshot spot.** Black-Scholes-Merton gamma is
+
+```
+d1 = [ln(S/K) + (r - q + sigma^2 / 2) * T] / (sigma * sqrt(T))
+gamma = exp(-q T) * n(d1) / (S * sigma * sqrt(T))
+```
+
+`n` is the standard normal density. The model gamma is positive. Dealer sign is applied by the same rule as the spot engine.
+
+Compare that gamma with `abs(vendor gamma)`. If the absolute residual is greater than `max(gamma_abs_tolerance, gamma_rel_tolerance * abs(vendor gamma))`, the snapshot-spot node uses the vendor gamma and every other node uses Black-Scholes. Defaults are `1e-6` and `0.05`. The residual (`model - abs(vendor)`) and `used_vendor_gamma_at_spot` are kept on the result. Inside the tolerance, the spot node uses Black-Scholes too.
+
+**Scale.** At hypothetical spot S, signed GEX uses that S in both gamma and `S^2 * 0.01`. A gamma computed at S is not paired with the original spot's scale.
+
+**Crossings.** Adjacent grid nets with opposite signs are interpolated linearly:
+
+```
+S = S0 + (S1 - S0) * (0 - y0) / (y1 - y0)
+```
+
+A grid node whose absolute net is at most `flip_dust` (default `1e-6` USD, far below the 1 USD spot-engine tolerance) is an exact zero and is recorded once, at the start of a zero run. Nets on both sides of a step that are both inside that dust are not a crossing. Every remaining crossing is returned. `primary_flip` is the one nearest the snapshot spot. An equal distance keeps the lower spot.
+
+Contracts that pass quality and the expiry filter but cannot be repriced are listed in `skipped` and left out of the curve. That includes missing IV, non-positive IV, and non-positive time. They are not booked as zero gamma. On a book where every included contract is repriced and vendor gamma matches Black-Scholes at the snapshot spot, `curve_net_at_spot` matches the spot engine's net GEX within 1 USD. When the spot node is pinned to vendor gamma, `curve_net_at_spot` matches the vendor-gamma engine net of that same set.
+
+**Closed-form check.** One call at strike Kc and one put at Kp, with equal open interest, equal multiplier, equal IV, equal T, and `r = q = 0`, under `call_pos_put_neg`, has net GEX proportional to `S * (n(d1_call) - n(d1_put))`. That is zero when `d1_call = -d1_put`, so
+
+```
+S* = sqrt(Kc * Kp) * exp(-(sigma^2 / 2) * T)
+```
+
+The acceptance tolerance for that root is 0.05 underlying points (half of the default step at spot 100). Scaling both open interests, or both multipliers, by the same positive factor does not move the root.
 
 ## 5. Vanna and charm (not implemented)
 
