@@ -1,8 +1,8 @@
 # Data sources
 
-Figures in this file are copied from the project research note dated **2026-11-15** (America/Chicago). That note checked official docs or the GitHub API on that date and marked anything it did not verify. This implementation pass did **not** re-open vendor pricing pages or exchange rule pages on 2026-11-16. Nothing below adds a price, a rate limit, a field name, or an hour that the note did not already record. If a cell was unverified there, it stays unverified here.
+Prices, rate limits, and vendor plan notes in this file are copied from the project research note dated **2026-11-15** (America/Chicago). That note checked official docs or the GitHub API on that date and marked anything it did not verify. Those cells were not re-checked on 2026-11-16. Two later reads are dated where they appear: a Cboe delayed-quotes payload saved on 2026-11-16, and the NYSE holiday table cited in `docs/SESSIONS.md`. Nothing below adds a price or a rate limit the 2026-11-15 note did not already record.
 
-Phase 0–1 does not call any of these vendors. Tests use `tests/fixtures/` and block sockets. There is no order-placement client.
+Tests use `tests/fixtures/` and block sockets. Live Cboe download is opt-in (`--network`) and is not part of the test run. There is no order-placement client and no Webull adapter.
 
 ## What the engine needs from a chain
 
@@ -40,9 +40,20 @@ The research note verified on 2026-11-15 that `https://cdn.cboe.com/api/global/d
 
 The note says the payload includes open interest (typically prior-session OI) and Cboe-provided `iv`, `delta`, `gamma`, `theta`, `vega`. It is widely described as about 15 minutes delayed. No API key. It is an informal public CDN, not a contracted SLA.
 
-**Terms:** review Cboe market-data policies before any redistribution or public product use. Personal local research is the intended v1 use. That common open-source practice is not a license grant. Free to fetch does not mean free to redistribute.
+**Terms of use.** Review Cboe market-data policies before any redistribution or a public hosted product. Personal local research is the intended v1 use. Open-source tools that fetch this CDN are not a license grant. Free to fetch does not mean free to redistribute. The checked-in files are short slices of two responses saved for the parser test, not a data product.
 
-Not implemented in this release. It is the intended bootstrap source for a later phase, including a saved payload checked in as a fixture. Live fetch, when it exists, must be opt-in.
+`gex_scanner.adapters.cboe_delayed` parses that JSON. `scripts/cboe_snapshot.py` reads a saved file with `--fixture`. A download happens only when the script is given `--network` (or `fetch_delayed_quotes(..., network=True)`). The client follows the 307 to `cdn-api.cboe.com`. The raw body is kept on the snapshot and can be gzipped under `vendor/symbol/snapshot_id`.
+
+On 2026-11-16 this tree saved two truncated responses. The objects that remain were copied from the CDN body; the `options` arrays were shortened.
+
+| File | URL | CDN timestamp | What was kept |
+| --- | --- | --- | --- |
+| `tests/fixtures/recorded/cboe_nok_delayed.json` | `.../options/NOK.json` | `2026-11-16 00:29:44` | Header plus 4 of 772 contracts |
+| `tests/fixtures/recorded/cboe_spx_delayed.json` | `.../options/_SPX.json` | `2026-11-15 22:25:08` | Header plus 1 of 30074 contracts |
+
+Fields present on those payloads, and used by the parser: `timestamp`, `symbol`, `data.symbol`, `data.security_type`, `data.current_price`, `data.options[]` with `option`, `bid`, `ask`, `iv`, `open_interest`, `volume`, `delta`, `gamma`, `theta`, `vega`, `rho`, `last_trade_price`, `last_trade_time`. The payload has no multiplier. The adapter sets 100 and flags `multiplier_not_in_payload`. Style and settlement are also absent: `stock` is mapped to American physical and `index` to European cash, both flagged `style_not_in_payload`. Underlying `iv30` is not copied onto contracts. Option `iv` is stored as the number in the file.
+
+The NOK chain `timestamp` matched the HTTP `Last-Modified` GMT clock within a few seconds, so a naive chain timestamp is read as UTC. Naive `last_trade_time` values on these recordings sit on the US cash close (`15:59:59` for NOK, `16:14:59` for SPX), so those are read as `America/New_York`. DTE is the calendar-day gap from that ET date to the OCC expiry.
 
 ### Massive (formerly Polygon.io)
 
@@ -90,7 +101,9 @@ The note calls ORATS a commercial options analytics vendor and says **prices wer
 
 ## Fixture provider
 
-`FixtureProvider` reads local JSON. That is the only provider in this release. The chains under `tests/fixtures/` are synthetic: the expected GEX numbers are hand-calculated from the formula in `docs/METHODOLOGY.md`. They are not recorded vendor payloads.
+`FixtureProvider` reads the normalized JSON schema. The SPY, SPX-style, non-standard, and missing-IV chains are synthetic: the expected GEX numbers are hand-calculated from the formula in `docs/METHODOLOGY.md`.
+
+`CboeDelayedProvider` reads the CDN shape. The two `cboe_*_delayed.json` files are the recorded slices described above. Point the offline script at one of them. Do not pass `--network` in a test.
 
 ## Logging and secrets
 

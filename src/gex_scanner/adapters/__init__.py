@@ -1,6 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Chain providers. Phase 1 ships the fixture provider only."""
+"""Chain providers. Live Cboe download stays behind ``network=True``."""
 
+from gex_scanner.adapters.cboe_delayed import CboeDelayedProvider, parse_cboe_payload
 from gex_scanner.adapters.fixtures import FixtureProvider, load_chain_file, write_raw_cache
 
-__all__ = ["FixtureProvider", "load_chain_file", "write_raw_cache"]
+__all__ = [
+    "CboeDelayedProvider",
+    "FixtureProvider",
+    "load_chain_file",
+    "parse_cboe_payload",
+    "write_raw_cache",
+]

@@ -1,12 +1,39 @@
 # Sessions
 
-Display timezone and the question "what session is it now?" use `America/Chicago`. Exchange hours below are the ET hours from the project research note dated 2026-11-15, which cited Cboe's published GTH table and the 2026-10-19 extended-hours launch. This file does not add hours that note did not record.
+Display timezone and the question "what session is it now?" use `America/Chicago`. The session windows below are the ET hours from the project research note dated 2026-11-15, which cited Cboe's published GTH table and the 2026-10-19 extended-hours launch. The 2026–2027 holiday and early-close table is the only schedule added after that note, and it is sourced to the NYSE page dated in the clock section.
 
 DST does not change the ET-to-CT offset (ET is always one hour ahead of CT). It does change London and Asia local labels. Do not hardcode London or Tokyo clock times; compute session membership from the ET schedule in `America/Chicago`.
 
-The session clock, early-close calendar, and futures basis are not implemented in this release. `gex_scanner.sessions` only holds the key list and the equity pre-market seed so the names stay stable. `local_asia` and `local_london` stay disabled until a non-US options adapter exists.
+`gex_scanner.sessions.session_at` is the clock. It converts the ET windows below with `zoneinfo` (`America/Chicago` for the label, `America/New_York` for the exchange schedule). A trading session outranks a watch session. `local_asia` and `local_london` stay disabled until a non-US options adapter exists.
 
-A later clock should label every snapshot and alert with the session key, local CT time, and ET time, and should carry a tested US equity/index early-close table for 2026–2027 taken from the published exchange calendar. This file does not invent that holiday list.
+Ends are exclusive. The open instant is inside the session; the published end instant is not.
+
+On an early-close date the options session ends at 1:15 p.m. ET. That time, and the full-close dates, come from the NYSE Holidays & Trading Hours page fetched 2026-11-16 (https://www.nyse.com/markets/hours-calendars), not from the 2026-11-15 research note. The footnotes on that page give 1:00 p.m. ET for the cash markets and 1:15 p.m. ET for eligible options. They do not list a curb on those dates, so this clock does not open `us_curb` then. A full-close ET date suppresses RTH, curb, equity pre-market, and GTH. Refresh `src/gex_scanner/sessions/holidays.py` from that page when the next calendar is published. Do not extend it from memory. Dates after 2027 are not in the table.
+
+`asia_watch` is 09:00–15:00 `Asia/Tokyo` on a Tokyo weekday. `london_watch` is 08:00–16:30 `Europe/London` on a London weekday. Those are clock hours. This tree has no JPX or LSE holiday calendar. During either watch the label says to reuse the last valid US GEX map. It does not call that a live options book.
+
+SPY and QQQ use the 4:15 p.m. ET RTH close named in the research note. Other names on the 2026-10-19 list use a 4:00 p.m. ET RTH close and a 4:00–4:15 p.m. ET post window (`us_curb`). NDX uses the index RTH close and is not treated as GTH.
+
+Cash/futures basis is `futures_level = index_level + basis`, with `basis = future - cash`. The stored record keeps the method (`last_rth_close` or `live_future_minus_cash`). Pairs are SPX/ES, NDX/NQ, and RUT/RTY. No other pair is mapped.
+
+## Sample labels
+
+| Instant (America/Chicago) | Underlying | Key |
+| --- | --- | --- |
+| 2026-11-16 08:30 | SPX | `us_rth` |
+| 2026-11-15 19:15 | SPX | `us_gth_index` |
+| 2026-11-15 19:15 | SPY | `asia_watch` |
+| 2026-11-16 06:30 | SPY | `us_equity_pre` |
+| 2026-01-15 00:00 | SPY | none (CST midnight is 15:00 JST, the end of the Tokyo window) |
+| 2026-07-15 00:00 | SPY | `asia_watch` (CDT midnight is 14:00 JST) |
+| 2026-03-08 01:30 and 03:30 | SPX | none (Sunday morning; 02:30 CT is the same instant as 03:30 CDT) |
+| 2026-03-08 19:15 | SPX | `us_gth_index` (Sunday open after the spring-forward) |
+| 2026-03-16 02:30 | SPY | not `london_watch` (US is on CDT, UK is still on GMT) |
+| 2026-03-16 03:00 | SPY | `london_watch` |
+| 2026-11-01 01:30, both folds | SPX | none (Sunday morning; the folds are one hour apart and share a label) |
+| 2026-11-01 19:15 | SPX | `us_gth_index` |
+| 2026-11-27 12:14 | SPX | `us_rth` (early close still open) |
+| 2026-11-27 12:15 | SPX | not `us_rth` (1:15 p.m. ET options close) |
 
 ## What actually trades
 

@@ -70,6 +70,10 @@ class ChainSnapshot:
     contracts: tuple[Contract, ...]
     futures: tuple[FutureQuote, ...] = ()
     raw_json: str | None = None
+    # Filled by a provider that knows the clock. None on older fixtures.
+    session_key: str | None = None
+    session_ct: datetime | None = None
+    session_et: datetime | None = None
 
 
 @dataclass(frozen=True)

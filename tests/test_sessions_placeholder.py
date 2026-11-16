@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Phase 0 session vocabulary. The session clock itself is a later phase."""
+"""Session vocabulary still matches docs/SESSIONS.md. The clock is test_sessions.py."""
 
 from __future__ import annotations
 
