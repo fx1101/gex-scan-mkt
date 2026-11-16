@@ -1,0 +1,6 @@
+# Editable research universe. A symbol with no chain is skipped.
+# This file does not claim that every name is entitled on a given adapter.
+
+indexes = ["SPX", "NDX", "RUT"]
+etfs = ["SPY", "QQQ", "IWM", "GLD", "XLF", "SOXX", "TLT"]
+stocks = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"]

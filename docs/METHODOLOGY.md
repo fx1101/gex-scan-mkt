@@ -12,6 +12,8 @@ This file is the normative description of the GEX math. The implementation follo
 | Quality rules | Implemented |
 | Zero-gamma / flip by repricing | Implemented |
 | Vanna / charm | Specified only. `enable_second_order` defaults off and refuses `true`. |
+| Research rank | Implemented. A weighted mean of visible components. Not a profit score. |
+| Futures basis on a scan | Implemented for SPX/ES, NDX/NQ, and RUT/RTY. The stored basis is the one replay uses. |
 | Pre-registered historical tests | Specified only. Not implemented. No history is fabricated. |
 
 The engine is a pure function of a `ChainSnapshot` and an `EngineConfig`. It does not call a network, a vendor, or a language model.
@@ -177,3 +179,26 @@ Levels at time t may use only data available at t (prior official OI, then-curre
 Output, when it exists: sample size, period, and pass/fail against thresholds Chris sets. An inconclusive result stays inconclusive.
 
 History has to be collected going forward from Cboe delayed snapshots, or imported later from a vendor Chris entitles (ThetaData and Massive are the realistic history sources named in the research note). This repository does not ship a fake history.
+
+## 8. Research rank
+
+The scanner ranks a configurable universe. A symbol with no chain is skipped. The score is a research rank for the session, not a forecast of profit.
+
+Each component is in `[0, 1]` and is shown even when its weight is zero. A weight at or below zero drops that component from the score. The default weight of each component is 1. The score is the weighted mean of the enabled components. If every weight is zero, the score is 0.
+
+| Component | Definition |
+| --- | --- |
+| `regime_size` | `abs(net GEX) / max abs(net GEX)` across the symbols that were scanned. Zero when the universe nets to zero. |
+| `proximity` | `1 - nearest / 5`, floored at 0. `nearest` is the smallest absolute percent distance from the reference price to the primary flip, the call wall, or the put wall. Five percent is the span. No level means 0. |
+| `zero_dte_share` | The book's 0DTE gross share. Missing means 0. |
+| `quality` | Half the fraction of contracts included, plus half a freshness term. Freshness is 1 at age 0 and 0 at or beyond 900 seconds. |
+| `wall_overlap` | 1 when the reference price is within 0.2 percent of the call wall or the put wall. Otherwise 0. |
+
+Percent distance is `(level - reference) / reference * 100`. During `us_rth` the reference is the cash spot and the levels are cash levels. During `asia_watch` and `london_watch` the row says the last US GEX map was reused. It does not call that a live Asia options book. When a stored basis exists, the reference is the futures mark and the distances use the mapped levels.
+
+Net GEX within 1 USD of the documented unit is `flat`. Above that, the sign is `positive` or `negative`.
+
+- Positive: hedging is hypothesized to be more likely to dampen moves.
+- Negative: hedging is hypothesized to be more likely to amplify moves.
+
+Rows sort by score descending, then by symbol. The dashboard keeps an unvalidated-hypothesis badge until a dated backtest report exists. That report is not part of this release.

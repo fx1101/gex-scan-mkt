@@ -53,7 +53,7 @@ US equity and ETF options are not a 24-hour book. "Asia" and "London" in v1 mean
 
 3. **Open interest** is mostly a once-a-day official number (OCC / prior session). Intraday and overnight GEX changes come from spot, IV, and greeks, plus GTH trading in products that actually trade. Do not treat OI as ticking with every print.
 
-4. **Index versus futures.** A flip at a cash index level is not at that same number on the future. `futures_level = index_level + basis`. Basis is last RTH close basis, or live future minus cash when both exist. A later phase must persist the basis it used. Multipliers for ES and NQ (research note: ES is $50/point and NQ is $20/point) have to be checked against the current contract specs before a futures-options book is built. This release does not map futures.
+4. **Index versus futures.** A flip at a cash index level is not at that same number on the future. `futures_level = index_level + basis`. Basis is last RTH close basis, or live future minus cash when both exist. The scanner stores that basis with the snapshot, and replay uses the stored number. Pairs are SPX/ES, NDX/NQ, and RUT/RTY. Multipliers for ES and NQ (research note: ES is $50/point and NQ is $20/point) have to be checked against the current contract specs before a futures-options book is built. This release does not build that futures-options book.
 
 ## Session keys
 

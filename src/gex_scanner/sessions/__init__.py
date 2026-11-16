@@ -1,7 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """Session keys, the America/Chicago clock, and cash/futures basis."""
 
-from gex_scanner.sessions.basis import FUTURES_BY_INDEX, SessionBasis, futures_level, session_basis
+from gex_scanner.sessions.basis import (
+    FUTURES_BY_INDEX,
+    MappedLevels,
+    SessionBasis,
+    futures_level,
+    map_levels,
+    session_basis,
+)
 from gex_scanner.sessions.calendar import SessionLabel, session_at
 from gex_scanner.sessions.keys import (
     CBOE_INDEX_UNDERLYINGS,
@@ -19,10 +26,12 @@ __all__ = [
     "EQUITY_PREMARKET_UNDERLYINGS",
     "FUTURES_BY_INDEX",
     "GTH_INDEX_UNDERLYINGS",
+    "MappedLevels",
     "SESSION_KEYS",
     "SessionBasis",
     "SessionLabel",
     "futures_level",
+    "map_levels",
     "session_at",
     "session_basis",
 ]
