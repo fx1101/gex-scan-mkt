@@ -2,7 +2,7 @@
 
 Research tool for dealer-style gamma exposure (GEX) on US listed options. The working package name is `gex-scanner`. This repository is the product; it is not nested under another directory.
 
-Phases 0 through 2 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, and flip repricing on a spot grid. Later phases (live vendors, the session clock, ranking, TradingView, backtests) are not started.
+Phases 0 through 3 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, flip repricing, the Cboe delayed-quotes parser, and the America/Chicago session clock. Later phases (Webull, ranking, TradingView, backtests) are not started. A live Cboe download requires `--network` and is not part of `pytest`.
 
 This is not an auto-trader. There is no order-placement code. Do not put production Webull keys in the environment for this phase. Sandbox is the default written in `.env.example` for a later adapter.
 
@@ -18,6 +18,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 python scripts/gex_fixture.py tests/fixtures/spy_chain.json
+python scripts/cboe_snapshot.py --fixture tests/fixtures/recorded/cboe_nok_delayed.json
 ```
 
 `pytest` blocks outbound sockets. Fixture chains live in `tests/fixtures/`. Expected per-contract and per-strike GEX is inside each fixture and is checked within 1 USD of the documented unit.
@@ -25,8 +26,8 @@ python scripts/gex_fixture.py tests/fixtures/spy_chain.json
 ## Layout
 
 ```
-src/gex_scanner/          pure engine, fixture adapter, session key list
-tests/fixtures/           synthetic SPY, SPX-style, non-standard, and missing-IV chains
+src/gex_scanner/          pure engine, fixture and Cboe adapters, session clock
+tests/fixtures/           synthetic chains, plus recorded/ Cboe payload slices
 docs/METHODOLOGY.md       formulas, sign convention, what is not built yet
 docs/SESSIONS.md          America/Chicago session definitions
 docs/DATA_SOURCES.md      entitlements, limits, and terms notes from the 2026-11-15 research
