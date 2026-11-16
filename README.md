@@ -2,7 +2,7 @@
 
 Research tool for dealer-style gamma exposure (GEX) on US listed options. The working package name is `gex-scanner`. This repository is the product; it is not nested under another directory.
 
-Phases 0 through 3 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, flip repricing, the Cboe delayed-quotes parser, and the America/Chicago session clock. Later phases (Webull, ranking, TradingView, backtests) are not started. A live Cboe download requires `--network` and is not part of `pytest`.
+Phases 0 through 4 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, flip repricing, the Cboe delayed-quotes parser, the America/Chicago session clock, and the Webull OpenAPI adapter. Later phases (ranking, TradingView, backtests) are not started. A live Cboe download requires `--network`. A Webull download requires sandbox keys in the environment and is not part of `pytest`. Neither script places orders.
 
 This is not an auto-trader. There is no order-placement code. Do not put production Webull keys in the environment for this phase. Sandbox is the default written in `.env.example` for a later adapter.
 
@@ -19,15 +19,18 @@ pip install -e ".[dev]"
 pytest
 python scripts/gex_fixture.py tests/fixtures/spy_chain.json
 python scripts/cboe_snapshot.py --fixture tests/fixtures/recorded/cboe_nok_delayed.json
+python scripts/webull_snapshot.py
 ```
+
+`webull_snapshot.py` with empty keys prints a line and exits. It downloads one symbol only when `WEBULL_APP_KEY` and `WEBULL_APP_SECRET` are set and `WEBULL_ENVIRONMENT` is `sandbox`.
 
 `pytest` blocks outbound sockets. Fixture chains live in `tests/fixtures/`. Expected per-contract and per-strike GEX is inside each fixture and is checked within 1 USD of the documented unit.
 
 ## Layout
 
 ```
-src/gex_scanner/          pure engine, fixture and Cboe adapters, session clock
-tests/fixtures/           synthetic chains, plus recorded/ Cboe payload slices
+src/gex_scanner/          pure engine, Cboe and Webull adapters, session clock
+tests/fixtures/           synthetic chains, plus recorded/ Cboe and Webull slices
 docs/METHODOLOGY.md       formulas, sign convention, what is not built yet
 docs/SESSIONS.md          America/Chicago session definitions
 docs/DATA_SOURCES.md      entitlements, limits, and terms notes from the 2026-11-15 research

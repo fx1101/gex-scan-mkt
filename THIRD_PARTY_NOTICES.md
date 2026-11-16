@@ -21,6 +21,8 @@ Survey date for the rows below: **2026-11-16**. Details and star counts are in `
 | sgdividends/spx-dealer-gamma | https://github.com/sgdividends/spx-dealer-gamma | No detected license. Source not opened. | 2026-11-16 | None. |
 | NostroBenJ/gamma-research | https://github.com/NostroBenJ/gamma-research | No detected license. Source not opened. | 2026-11-16 | None. |
 | webull-inc/webull-openapi-skills | https://github.com/webull-inc/webull-openapi-skills | Apache-2.0 (GitHub API). Source not opened. | 2026-11-16 | None. |
+| webull-inc/webull-openapi-python-sdk | https://github.com/webull-inc/webull-openapi-python-sdk | Apache-2.0. Request classes and the US region table were read on 2026-11-16. No file was copied. | 2026-11-16 | The dry run imports the installed package when sandbox keys are set. Field names used by the parser are the SDK's. |
+| webull-inc/webull-openapi-mcp | https://github.com/webull-inc/webull-openapi-mcp | Apache-2.0. The option-contract and snapshot formatters were read on 2026-11-16. No file was copied. | 2026-11-16 | Response field names only. |
 | PatrickJS/awesome-cursorrules | https://github.com/PatrickJS/awesome-cursorrules | CC0-1.0 (GitHub API). Source not opened. | 2026-11-16 | None. |
 | simonro/Edge-GEX-Lab | https://github.com/simonro/Edge-GEX-Lab | MIT (GitHub API). Source not opened. | 2026-11-16 | None. Recorded only as a search hit. |
 | Darthreign/gex-dashboard | https://github.com/Darthreign/gex-dashboard | MIT (GitHub API). Source not opened. | 2026-11-16 | None. Recorded only as a search hit. |
@@ -29,4 +31,4 @@ Survey date for the rows below: **2026-11-16**. Details and star counts are in `
 
 The Apache License 2.0 text in `LICENSE` is the standard license for this project's original code. It was not taken from `Gex-Multi` or from `gex-engine`.
 
-Vendor documentation links in `docs/DATA_SOURCES.md` are citations. No vendor SDK is vendored in this release.
+Vendor documentation links in `docs/DATA_SOURCES.md` are citations. No vendor SDK is vendored in this release. The Webull dry run imports `webull-openapi-python-sdk` from the environment when sandbox keys are present. That package is not a dependency of `pytest`.
