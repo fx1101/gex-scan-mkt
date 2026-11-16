@@ -36,9 +36,9 @@ The capability probe asks the contract list about SPX, SPXW (root on SPX), NDX, 
 
 ### TradingView
 
-The research note's conclusion: TradingView is a chart and alert surface, not an options data source. There is no official retail API in that note for a full chain with OI and greeks. Pine cannot fetch options open interest. Do not scrape TradingView, and do not use unofficial "TradingView options API" sites. Webhook alerts, when a later phase builds them, follow TradingView's webhook documentation and must not place orders. TradingView plan fees were not needed for that conclusion and are not stated here.
+The research note's conclusion: TradingView is a chart and alert surface, not an options data source. There is no official retail API in that note for a full chain with OI and greeks. Pine cannot fetch options open interest. Do not scrape TradingView, and do not use unofficial "TradingView options API" sites. TradingView plan fees were not needed for that conclusion and are not stated here.
 
-Not implemented in this release.
+`scripts/export_tv.py` prints a level string. `src/gex_scanner/tv/pine/gex_levels.pine` draws those inputs. Outgoing alerts are JSON from `ALERT_WEBHOOK_URL`. Incoming TradingView webhooks are accepted as JSON with `symbol`, `price`, and `event`. Neither path places an order, and the JSON does not include API keys. The webhook shape follows TradingView's [webhook alert](https://www.tradingview.com/support/solutions/43000529348-how-to-configure-webhook-alerts/) documentation only as a destination for a message this app already computed.
 
 ### Cboe delayed quotes JSON
 

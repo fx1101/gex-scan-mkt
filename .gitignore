@@ -10,6 +10,7 @@ token_cache/
 # Raw vendor dumps can contain account identifiers.
 data/raw/
 data/cache/
+*.sqlite
 
 # Python
 __pycache__/

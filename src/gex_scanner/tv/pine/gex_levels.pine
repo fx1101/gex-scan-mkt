@@ -1,0 +1,44 @@
+//@version=6
+indicator("GEX session levels", overlay=true)
+
+// Paste the one-line string printed by scripts/export_tv.py into Levels.
+// Format: SYMBOL|flip:1.0|call:2.0|put:3.0|dte_call:4.0|dte_put:5.0
+// A blank after the colon means that level is absent.
+// This script does not read open interest. TradingView is the chart surface.
+// Example that the Python parser accepts:
+// SPX|flip:6700|call:6800|put:6600|dte_call:6750|dte_put:
+
+level_string = input.string("SPX|flip:6700|call:6800|put:6600|dte_call:6750|dte_put:", "Levels")
+
+parse_value(part) =>
+    bits = str.split(part, ":")
+    value = array.size(bits) > 1 ? array.get(bits, 1) : ""
+    value == "" ? na : str.tonumber(value)
+
+parts = str.split(level_string, "|")
+var float flip = na
+var float call_wall = na
+var float put_wall = na
+var float dte_call = na
+var float dte_put = na
+if barstate.isfirst and array.size(parts) > 1
+    for i = 1 to array.size(parts) - 1
+        part = array.get(parts, i)
+        key = array.get(str.split(part, ":"), 0)
+        value = parse_value(part)
+        if key == "flip"
+            flip := value
+        else if key == "call"
+            call_wall := value
+        else if key == "put"
+            put_wall := value
+        else if key == "dte_call"
+            dte_call := value
+        else if key == "dte_put"
+            dte_put := value
+
+plot(flip, "Flip", color.new(color.orange, 0), 2, plot.style_linebr)
+plot(call_wall, "Call wall", color.new(color.teal, 0), 1, plot.style_linebr)
+plot(put_wall, "Put wall", color.new(color.red, 0), 1, plot.style_linebr)
+plot(dte_call, "0DTE call wall", color.new(color.teal, 40), 1, plot.style_circles)
+plot(dte_put, "0DTE put wall", color.new(color.red, 40), 1, plot.style_circles)
