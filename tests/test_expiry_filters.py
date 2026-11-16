@@ -10,7 +10,7 @@ from gex_scanner.adapters.fixtures import load_chain_file
 from gex_scanner.config import EngineConfig, ExpiryFilter
 from gex_scanner.engine.filters import is_monthly, is_third_friday
 from gex_scanner.engine.gex import compute_symbol_gex
-from tests.conftest import FIXTURES, assert_within_unit, make_contract
+from tests.helpers import FIXTURES, assert_within_unit, make_contract
 
 
 def test_spy_filter_nets_match_fixture() -> None:

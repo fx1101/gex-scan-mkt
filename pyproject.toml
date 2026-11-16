@@ -20,7 +20,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = [".", "src"]
 addopts = "-q"
 markers = [
     "network: allow outbound sockets. Phase 0 and Phase 1 tests must not use this.",

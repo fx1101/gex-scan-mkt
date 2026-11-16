@@ -8,7 +8,7 @@ import json
 from gex_scanner.adapters.fixtures import load_chain_file
 from gex_scanner.config import DealerSign, EngineConfig
 from gex_scanner.engine.gex import compute_symbol_gex, unsigned_gex
-from tests.conftest import FIXTURES, assert_within_unit, make_contract, make_snapshot
+from tests.helpers import FIXTURES, assert_within_unit, make_contract, make_snapshot
 
 
 def test_missing_iv_is_flagged_and_still_priced_from_gamma() -> None:

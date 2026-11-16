@@ -7,7 +7,7 @@ import json
 
 from gex_scanner.adapters.fixtures import load_chain_file
 from gex_scanner.engine.gex import compute_symbol_gex
-from tests.conftest import FIXTURES, assert_within_unit, make_contract, make_snapshot
+from tests.helpers import FIXTURES, assert_within_unit, make_contract, make_snapshot
 
 
 def _expected(name: str) -> dict:

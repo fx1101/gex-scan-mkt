@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from gex_scanner.config import DealerSign, EngineConfig
 from gex_scanner.engine.gex import compute_symbol_gex
-from tests.conftest import assert_within_unit, make_contract, make_snapshot
+from tests.helpers import assert_within_unit, make_contract, make_snapshot
 
 
 def test_flipping_dealer_sign_flips_net_gex_for_a_symmetric_book() -> None:

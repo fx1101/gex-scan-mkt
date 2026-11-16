@@ -11,7 +11,7 @@ import pytest
 from gex_scanner.adapters.fixtures import load_chain_file
 from gex_scanner.config import GEX_UNIT
 from gex_scanner.engine.gex import compute_symbol_gex
-from tests.conftest import FIXTURES, assert_within_unit
+from tests.helpers import FIXTURES, assert_within_unit
 
 ROOT = Path(__file__).resolve().parents[1]
 

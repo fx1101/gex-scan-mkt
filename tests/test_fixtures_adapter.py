@@ -12,7 +12,7 @@ from gex_scanner.adapters.fixtures import (
     read_raw_cache,
     write_raw_cache,
 )
-from tests.conftest import FIXTURES
+from tests.helpers import FIXTURES
 
 
 def test_raw_payload_roundtrips_through_gzip_cache(tmp_path) -> None:
