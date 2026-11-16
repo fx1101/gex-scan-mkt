@@ -39,6 +39,8 @@ DEALER_SIGN_LABELS: dict[DealerSign, str] = {
 }
 
 GEX_UNIT = "USD of estimated dealer delta change per 1% move"
+# Flip time uses a fixed day count. It is not a market-calendar fraction.
+DAY_COUNT = "ACT/365"
 
 
 def disclaimer_for(dealer_sign: DealerSign) -> str:
@@ -68,6 +70,21 @@ class EngineConfig:
     # receives a stale_quote warning. None disables the clock comparison.
     stale_quote_seconds: float | None = None
     enable_second_order: bool = False
+    # Flip repricing. The default band is ±15%, the top of the specified
+    # ±10% to ±15% range. The rate is a config constant, not a live SOFR print.
+    flip_band: float = 0.15
+    flip_grid_points: int = 301
+    risk_free_rate: float = 0.0
+    dividend_yield: float = 0.0
+    # ACT/365 year fraction used when a 0DTE contract has no explicit time_years.
+    zero_dte_time_years: float = 1.0 / 365.0
+    # Pin the spot node to vendor gamma when Black-Scholes disagrees by more
+    # than max(abs, rel * |vendor gamma|).
+    gamma_abs_tolerance: float = 1e-6
+    gamma_rel_tolerance: float = 0.05
+    # Nets smaller than this on both sides of a grid step are not a crossing.
+    # This blocks float dust from inventing a flip. It is far below 1 USD.
+    flip_dust: float = 1e-6
 
     def __post_init__(self) -> None:
         if self.enable_second_order:
@@ -75,3 +92,13 @@ class EngineConfig:
                 "enable_second_order is not implemented. Leave it false until "
                 "the vanna/charm phase is explicitly started."
             )
+        if not 0.0 < self.flip_band < 1.0:
+            raise ValueError("flip_band must be between 0 and 1, exclusive")
+        if self.flip_grid_points < 3 or self.flip_grid_points % 2 == 0:
+            raise ValueError("flip_grid_points must be an odd integer >= 3")
+        if self.zero_dte_time_years <= 0:
+            raise ValueError("zero_dte_time_years must be positive")
+        if self.gamma_abs_tolerance < 0 or self.gamma_rel_tolerance < 0:
+            raise ValueError("gamma tolerances must be non-negative")
+        if self.flip_dust < 0:
+            raise ValueError("flip_dust must be non-negative")

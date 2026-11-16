@@ -43,6 +43,10 @@ class Contract:
     # +1 dealer long gamma, -1 dealer short gamma. Only for flow_signed.
     flow_sign: int | None = None
     provider_flags: tuple[str, ...] = ()
+    # Year fraction for Black-Scholes. None means derive it from dte.
+    time_years: float | None = None
+    # Continuous dividend yield. None means the config default.
+    dividend_yield: float | None = None
 
 
 @dataclass(frozen=True)
@@ -163,3 +167,50 @@ class SymbolGex:
     zero_dte_gross_share: float | None
     quality: QualityReport
     raw_payload: Any = None
+
+
+@dataclass(frozen=True)
+class GammaResidual:
+    """Vendor gamma versus Black-Scholes gamma at the snapshot spot."""
+
+    occ_symbol: str
+    vendor_gamma: float
+    bs_gamma: float
+    residual: float
+    used_vendor_gamma_at_spot: bool
+
+
+@dataclass(frozen=True)
+class FlipCrossing:
+    """One interpolated spot where the repriced net GEX changes sign or hits zero."""
+
+    spot: float
+    gex_left: float
+    gex_right: float
+
+
+@dataclass(frozen=True)
+class FlipResult:
+    """Zero-gamma crossings from repricing. Empty when the band does not cross."""
+
+    underlying: str
+    snapshot_spot: float
+    expiry_filter: str
+    band: float
+    band_low: float
+    band_high: float
+    grid_points: int
+    day_count: str
+    risk_free_rate: float
+    dividend_yield: float
+    crossings: tuple[FlipCrossing, ...]
+    primary_flip: float | None
+    no_crossing_in_band: bool
+    curve_net_at_spot: float
+    vendor_net_at_spot: float
+    residuals: tuple[GammaResidual, ...]
+    skipped: tuple[tuple[str, str], ...]
+    grid_spots: tuple[float, ...]
+    grid_net: tuple[float, ...]
+    unit: str
+    disclaimer: str

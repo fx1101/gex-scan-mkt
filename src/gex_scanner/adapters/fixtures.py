@@ -90,6 +90,8 @@ def _contract(raw: dict[str, Any], path: Path) -> Contract:
         expiry_kind=raw.get("expiry_kind"),
         flow_sign=None if flow is None else int(flow),
         provider_flags=tuple(flags),
+        time_years=_optional_float(raw.get("time_years"), path, "time_years"),
+        dividend_yield=_optional_float(raw.get("dividend_yield"), path, "dividend_yield"),
     )
 
 
