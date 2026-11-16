@@ -26,7 +26,13 @@ Docs cited by the research note: [developer.webull.com market-data overview](htt
 - A full SPX chain does not fit in one call. A later adapter should list, filter to a moneyness band and DTE cap, batch by 20, cache, and back off on 429. The note's design constraint: at 20 contracts per snapshot and 300 calls/minute, a naive full-chain refresh can take on the order of a couple of minutes and will burn the quota.
 - **Do not implement order placement.** Insufficient-permission errors should fail clearly. Credentials stay in `.env`.
 
-This release does not include the Webull adapter.
+`gex_scanner.adapters.webull` maps those documented fields. HTTP 401 and 403 raise `EntitlementError` and name the OPRA Real-Time Non-display subscription. HTTP 429 uses a token bucket and backoff. The bucket uses the rates in the list above: sandbox 30/60s on both the contract list and the option snapshots; production 300/60s snapshots and 60/60s on the contract list. Snapshot calls are batches of at most 20. Before those calls, contracts outside ±15% of spot or beyond a 30-day DTE cap are skipped. The official SDK's `end_date` parameter is an inclusive lower bound on expiration, so it is not used as that cap.
+
+The capability probe asks the contract list about SPX, SPXW (root on SPX), NDX, RUT, SPY, QQQ, and IWM. A name is covered only when at least one contract comes back. An empty page or a 403 is not coverage.
+
+`scripts/webull_snapshot.py` is the dry run. Empty `WEBULL_APP_KEY` or `WEBULL_APP_SECRET` exits without importing the SDK and without a socket. `WEBULL_ENVIRONMENT` must be `sandbox`; anything else is refused. When sandbox keys are set it imports `webull-openapi-python-sdk` and uses that package's US region table. This repository does not embed an API host and does not construct a trade client.
+
+`tests/fixtures/recorded/webull_spy_chain.json` is a redacted example. The field names are the ones in `webull-inc/webull-openapi-python-sdk` and `webull-openapi-mcp` as read on 2026-11-16. It is not a capture from an account, and it contains no app key, app secret, or token.
 
 ### TradingView
 

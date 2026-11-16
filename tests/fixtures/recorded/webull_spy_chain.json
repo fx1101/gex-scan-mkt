@@ -1,0 +1,135 @@
+{
+  "note": "Redacted example. Field names match webull-inc/webull-openapi-python-sdk and webull-openapi-mcp as read on 2026-11-16. No account, token, app key, or app secret is included. This is not a live capture.",
+  "as_of": "2026-11-16T15:00:00Z",
+  "underlying_snapshot": {
+    "symbol": "SPY",
+    "price": "500"
+  },
+  "contract_pages": [
+    {
+      "pagination_key": "page-2",
+      "data": [
+        {
+          "symbol": "SPY261116C00500000",
+          "instrument_id": "spy-c-500",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "CALL",
+          "strike_price": "500",
+          "init_exp_date": "2026-11-16",
+          "style": "AMERICAN",
+          "status": "LISTING",
+          "multiplier": "100",
+          "settlement_method": "PHYSICAL"
+        },
+        {
+          "symbol": "SPY261116P00490000",
+          "instrument_id": "spy-p-490",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "PUT",
+          "strike_price": "490",
+          "init_exp_date": "2026-11-16",
+          "style": "AMERICAN",
+          "status": "LISTING",
+          "multiplier": "100"
+        }
+      ]
+    },
+    {
+      "data": [
+        {
+          "symbol": "SPY261116C00510000",
+          "instrument_id": "spy-c-510",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "CALL",
+          "strike_price": "510",
+          "expiration_date": "2026-11-16",
+          "style": "AMERICAN",
+          "status": "LISTING",
+          "multiplier": "100"
+        },
+        {
+          "symbol": "SPY261218C00500000",
+          "instrument_id": "spy-c-far",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "CALL",
+          "strike_price": "500",
+          "init_exp_date": "2026-12-18",
+          "style": "AMERICAN",
+          "status": "LISTING",
+          "multiplier": "100"
+        },
+        {
+          "symbol": "SPY261116C00200000",
+          "instrument_id": "spy-c-200",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "CALL",
+          "strike_price": "200",
+          "init_exp_date": "2026-11-16",
+          "style": "AMERICAN",
+          "status": "LISTING",
+          "multiplier": "100"
+        },
+        {
+          "symbol": "SPY261116C00505000",
+          "instrument_id": "spy-c-dead",
+          "underlying_symbol": "SPY",
+          "root_symbol": "SPY",
+          "option_type": "CALL",
+          "strike_price": "505",
+          "init_exp_date": "2026-11-16",
+          "style": "AMERICAN",
+          "status": "DELISTING",
+          "multiplier": "100"
+        }
+      ]
+    }
+  ],
+  "snapshots": [
+    {
+      "symbol": "SPY261116C00500000",
+      "strike_price": "500",
+      "imp_vol": "0.2",
+      "open_interest": "10",
+      "volume": "1",
+      "delta": "0.5",
+      "gamma": "0.02",
+      "theta": "-0.01",
+      "vega": "0.1",
+      "rho": "0.01",
+      "bid": "1.0",
+      "ask": "1.1",
+      "price": "1.05"
+    },
+    {
+      "symbol": "SPY261116P00490000",
+      "strike_price": "490",
+      "imp_vol": "0.2",
+      "open_interest": "8",
+      "gamma": "0.015",
+      "delta": "-0.4",
+      "theta": "-0.01",
+      "vega": "0.1",
+      "rho": "0.01",
+      "bid": "1.2",
+      "ask": "1.3"
+    },
+    {
+      "symbol": "SPY261116C00510000",
+      "strike_price": "510",
+      "imp_vol": "0.22",
+      "open_interest": "4",
+      "gamma": "0.01",
+      "delta": "0.3",
+      "theta": "-0.01",
+      "vega": "0.1",
+      "rho": "0.01",
+      "bid": "0.4",
+      "ask": "0.5"
+    }
+  ]
+}
