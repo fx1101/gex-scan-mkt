@@ -50,7 +50,7 @@ The note says the payload includes open interest (typically prior-session OI) an
 
 `gex_scanner.adapters.cboe_delayed` parses that JSON. `scripts/cboe_snapshot.py` reads a saved file with `--fixture`. A download happens only when the script is given `--network` (or `fetch_delayed_quotes(..., network=True)`). The client follows the 307 to `cdn-api.cboe.com`. The raw body is kept on the snapshot and can be gzipped under `vendor/symbol/snapshot_id`.
 
-On 2026-11-16 this tree saved two truncated responses. The objects that remain were copied from the CDN body; the `options` arrays were shortened.
+On 2026-11-16 this tree saved two truncated responses. The objects that remain were copied from the CDN body; the `options` arrays were shortened. Those slices are not an 18-month archive. The validation window 2025-05-17 through 2026-11-17 has no chain session built from them. ThetaData and Massive were not called.
 
 | File | URL | CDN timestamp | What was kept |
 | --- | --- | --- | --- |

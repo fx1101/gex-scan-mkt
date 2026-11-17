@@ -14,7 +14,7 @@ This file is the normative description of the GEX math. The implementation follo
 | Vanna / charm | Specified only. `enable_second_order` defaults off and refuses `true`. |
 | Research rank | Implemented. A weighted mean of visible components. Not a profit score. |
 | Futures basis on a scan | Implemented for SPX/ES, NDX/NQ, and RUT/RTY. The stored basis is the one replay uses. |
-| Pre-registered historical tests | Specified only. Not implemented. No history is fabricated. |
+| Pre-registered historical tests | Implemented. The 2026-11-17 report is inconclusive: chain sessions in the window are 0. |
 
 The engine is a pure function of a `ChainSnapshot` and an `EngineConfig`. It does not call a network, a vendor, or a language model.
 
@@ -164,21 +164,25 @@ Implemented flags:
 
 Official open interest is typically the prior session. A later logger should attribute intraday GEX changes to spot, IV, and greeks, not to a ticking OI print. This release does not have a live feed.
 
-## 7. Pre-registered tests (not implemented)
+## 7. Pre-registered tests
 
-These tests are the bar for trusting a level. They are not coded, and this release has no historical sample. Defaults, when they are written, should be conservative and should not pass on noise. Until a dated report exists, any later dashboard must keep an unvalidated-hypothesis badge.
+These tests are the bar for trusting a level. The code is `src/gex_scanner/backtest/preregistered.py`. The dated run is `docs/backtests/2026-11-17-validation.md`.
 
-Levels at time t may use only data available at t (prior official OI, then-current quotes). Out-of-sample results are reported separately. No peeking.
+Chris set the window to 2025-05-17 through 2026-11-17, America/Chicago. The out-of-sample slice is 2026-05-17 through 2026-11-17. In-sample results are reported and cannot grant a pass.
 
-1. **Flip test (RTH).** When price starts the cash session on one side of the primary flip and then crosses it, compare realized range or directional follow-through over the next N minutes or hours with days that do not cross. Report hit rate, average move, and a same-time-of-day unconditional baseline.
-2. **Wall magnetism vs break.** How often session price touches versus breaks the put wall and the call wall, with MFE/MAE.
-3. **Regime vs realized range.** Absolute session range and realized vol on days with clearly positive versus clearly negative net GEX, and 0DTE-heavy versus not, controlling for VIX or ATM IV when that series exists.
-4. **Overnight / session tests.** During `asia_watch` and `london_watch`, test whether prior-close (or last GTH) SPX levels, mapped to ES, have a statistical relationship with the overnight ES path. Compare with a no-GEX baseline.
-5. **Walk-forward.** The split above.
+Levels at time t may use only data available at t. A record whose level timestamp is after the session window opens is rejected. No peeking.
 
-Output, when it exists: sample size, period, and pass/fail against thresholds Chris sets. An inconclusive result stays inconclusive.
+Each numeric test needs at least 60 out-of-sample sessions in each arm. Below that, the verdict is inconclusive. A large sample that misses the margin is a fail. The follow-through clock is 120 minutes, the same clock on cross days and other days.
 
-History has to be collected going forward from Cboe delayed snapshots, or imported later from a vendor Chris entitles (ThetaData and Massive are the realistic history sources named in the research note). This repository does not ship a fake history.
+1. **Flip test (RTH).** Cross days versus the unconditional same-clock follow-through. A pass needs an absolute excess of at least 0.002, a mean-difference t-statistic of at least 2, and a hit rate of at least 0.60 on the cross direction.
+2. **Wall magnetism vs break.** Share of RTH sessions that touch a call or put wall without closing through it, minus the share that close through it. A pass needs that gap to be at least 0.10. The report includes mean MFE and MAE from the open, in points.
+3. **Regime vs realized range.** Session range `(high - low) / open` on clearly positive versus clearly negative net GEX. Clear means beyond the out-of-sample median absolute net GEX. The control is a line of range on VIX or ATM IV fit on the in-sample rows only and applied out of sample. Missing IV leaves the test inconclusive. A pass also needs at least 60 sessions on each side of a 0.50 0DTE gross share. The hypothesized sign is a smaller residual range when net GEX is positive.
+4. **Overnight / session tests.** During `asia_watch` and `london_watch`, correlation of the distance from the mapped flip to the future at the window start with the future's return over the window. The no-GEX baseline is the unconditional mean of that return. A pass needs absolute correlation of at least 0.25 and a correlation t-statistic of at least 2.
+5. **Walk-forward.** The split above. It passes only when the other four pass. If any of them is inconclusive, this one is inconclusive.
+
+The dashboard badge is `validated` only when all five pass. Any fail or inconclusive keeps `unvalidated hypothesis`. The 2026-11-17 run has zero chain sessions in the window, so the badge stays unvalidated and no test is marked passed.
+
+History has to be collected going forward from Cboe delayed snapshots, or imported later from a vendor Chris entitles (ThetaData and Massive are the realistic history sources named in the research note). This repository does not ship a fake history. Cboe delayed is not an archive. This run did not call it and did not start a paid signup.
 
 ## 8. Research rank
 
@@ -201,4 +205,4 @@ Net GEX within 1 USD of the documented unit is `flat`. Above that, the sign is `
 - Positive: hedging is hypothesized to be more likely to dampen moves.
 - Negative: hedging is hypothesized to be more likely to amplify moves.
 
-Rows sort by score descending, then by symbol. The dashboard keeps an unvalidated-hypothesis badge until a dated backtest report exists. That report is not part of this release.
+Rows sort by score descending, then by symbol. The dashboard badge is the badge in the latest file under `docs/backtests/`. The 2026-11-17 report is inconclusive, so the badge is unvalidated hypothesis.
