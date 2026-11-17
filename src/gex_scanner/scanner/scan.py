@@ -8,13 +8,13 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 
 from gex_scanner.adapters.fixtures import FixtureProvider
+from gex_scanner.backtest.preregistered import current_badge
 from gex_scanner.config import EngineConfig, ExpiryFilter
 from gex_scanner.engine.flip import compute_flip
 from gex_scanner.engine.gex import compute_symbol_gex
 from gex_scanner.scanner.ranker import (
     REUSED_US_MAP,
     STALE_SECONDS,
-    UNVALIDATED,
     WALL_OVERLAP_PCT,
     RankWeights,
     percent_distance,
@@ -325,7 +325,7 @@ def scan_universe(
                 quality_flags=item["flags"],
                 reused_us_map=item["reused"],
                 note=REUSED_US_MAP if item["reused"] else "",
-                badge=UNVALIDATED,
+                badge=current_badge(),
                 strikes=item["strikes"],
                 expiries=item["expiries"],
                 unit=gex.unit,

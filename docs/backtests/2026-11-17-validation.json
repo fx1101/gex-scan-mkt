@@ -1,0 +1,104 @@
+{
+  "as_of": "2026-11-17",
+  "badge": "unvalidated hypothesis",
+  "history": {
+    "window_start": "2025-05-17",
+    "window_end": "2026-11-17",
+    "timezone": "America/Chicago",
+    "oos_start": "2026-05-17",
+    "chain_sessions": 0,
+    "paired_ohlc_sessions": 0,
+    "recorded_slices": [
+      {
+        "path": "tests/fixtures/recorded/cboe_nok_delayed.json",
+        "timestamp": "2026-11-16 00:29:44",
+        "usable_sessions": "0",
+        "reason": "One Cboe delayed quote saved for the parser. The CDN is a current snapshot, not an archive, and this file has no later session path."
+      },
+      {
+        "path": "tests/fixtures/recorded/cboe_spx_delayed.json",
+        "timestamp": "2026-11-15 22:25:08",
+        "usable_sessions": "0",
+        "reason": "One Cboe delayed quote saved for the parser. The CDN is a current snapshot, not an archive, and this file has no later session path."
+      },
+      {
+        "path": "tests/fixtures/recorded/webull_spy_chain.json",
+        "timestamp": "2026-11-16T15:00:00Z",
+        "usable_sessions": "0",
+        "reason": "Redacted field example. Not an account capture and not a session path."
+      }
+    ],
+    "synthetic_fixtures_excluded": [
+      "missing_iv.json",
+      "nonstandard_multiplier.json",
+      "spx_chain.json",
+      "spy_chain.json"
+    ],
+    "local_archive_files": [],
+    "massive_key_set": false,
+    "thetadata_username_set": false,
+    "thetadata_password_set": false,
+    "cboe_delayed": "current snapshot, not an archive",
+    "orders": false
+  },
+  "follow_through_minutes": 120,
+  "min_arm": 60,
+  "tests": [
+    {
+      "name": "flip_rth",
+      "verdict": "inconclusive",
+      "passed": false,
+      "sample_size": 0,
+      "in_sample_size": 0,
+      "out_of_sample_size": 0,
+      "estimate": null,
+      "baseline": null,
+      "detail": "out-of-sample arms are below 60 sessions"
+    },
+    {
+      "name": "wall_magnetism",
+      "verdict": "inconclusive",
+      "passed": false,
+      "sample_size": 0,
+      "in_sample_size": 0,
+      "out_of_sample_size": 0,
+      "estimate": null,
+      "baseline": null,
+      "detail": "out-of-sample wall observations are below 60"
+    },
+    {
+      "name": "regime_range",
+      "verdict": "inconclusive",
+      "passed": false,
+      "sample_size": 0,
+      "in_sample_size": 0,
+      "out_of_sample_size": 0,
+      "estimate": null,
+      "baseline": null,
+      "detail": "out-of-sample regime sample is below 120 sessions"
+    },
+    {
+      "name": "overnight",
+      "verdict": "inconclusive",
+      "passed": false,
+      "sample_size": 0,
+      "in_sample_size": 0,
+      "out_of_sample_size": 0,
+      "estimate": null,
+      "baseline": null,
+      "detail": "out-of-sample overnight sessions are below 60"
+    },
+    {
+      "name": "walk_forward",
+      "verdict": "inconclusive",
+      "passed": false,
+      "sample_size": 0,
+      "in_sample_size": 0,
+      "out_of_sample_size": 0,
+      "estimate": null,
+      "baseline": null,
+      "detail": "no sessions in the registered window"
+    }
+  ],
+  "passed_count": 0
+}

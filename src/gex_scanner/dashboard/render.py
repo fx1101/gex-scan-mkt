@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from html import escape
 
+from gex_scanner.backtest.preregistered import current_badge
 from gex_scanner.scanner.scan import RankRow
 
 _STYLE = """
@@ -28,7 +29,7 @@ def _cell(value: object) -> str:
     return escape(str(value))
 
 
-def render_index(rows: list[RankRow]) -> str:
+def render_index(rows: list[RankRow], badge: str | None = None) -> str:
     body = []
     for row in rows:
         body.append(
@@ -57,14 +58,14 @@ def render_index(rows: list[RankRow]) -> str:
         '<!DOCTYPE html><html><head><meta charset="utf-8">'
         "<title>Ranked setups</title><style>" + _STYLE + "</style></head><body>"
         "<h1>Ranked setups</h1>"
-        '<p class="badge">unvalidated hypothesis</p>'
+        f'<p class="badge">{escape(badge or current_badge())}</p>'
         "<p>Research rank from visible components. Not a profit forecast.</p>"
         + table
         + "</body></html>"
     )
 
 
-def render_symbol(row: RankRow) -> str:
+def render_symbol(row: RankRow, badge: str | None = None) -> str:
     peak = max((abs(bar.net_gex) for bar in row.strikes), default=0.0)
     bars = []
     for bar in row.strikes:
@@ -97,7 +98,7 @@ def render_symbol(row: RankRow) -> str:
         f"<title>{escape(row.underlying)} GEX</title><style>" + _STYLE + "</style></head><body>"
         f'<p><a href="/">Ranked setups</a></p>'
         f"<h1>{escape(row.underlying)}</h1>"
-        '<p class="badge">unvalidated hypothesis</p>'
+        f'<p class="badge">{escape(badge or current_badge())}</p>'
         f"<p>{escape(row.disclaimer)}</p>"
         f"<p>Unit: {escape(row.unit)}</p>"
         f"<p>Session {escape(row.snapshot_session_key)} "
