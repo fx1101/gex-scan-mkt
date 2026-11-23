@@ -12,6 +12,8 @@ from typing import Any
 SENSITIVE_ENV_NAMES: tuple[str, ...] = (
     "WEBULL_APP_KEY",
     "WEBULL_APP_SECRET",
+    "ALPACA_API_KEY",
+    "ALPACA_API_SECRET",
     "MASSIVE_API_KEY",
     "THETADATA_USERNAME",
     "THETADATA_PASSWORD",

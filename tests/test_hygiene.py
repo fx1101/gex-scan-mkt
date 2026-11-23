@@ -35,6 +35,8 @@ def test_env_example_has_empty_secrets() -> None:
         assignments[key] = value
     assert assignments["WEBULL_APP_KEY"] == ""
     assert assignments["WEBULL_APP_SECRET"] == ""
+    assert assignments["ALPACA_API_KEY"] == ""
+    assert assignments["ALPACA_API_SECRET"] == ""
     assert assignments["WEBULL_ENVIRONMENT"] == "sandbox"
     assert assignments["MASSIVE_API_KEY"] == ""
     assert assignments["THETADATA_USERNAME"] == ""

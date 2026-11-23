@@ -2,7 +2,7 @@
 
 Research tool for dealer-style gamma exposure (GEX) on US listed options. The working package name is `gex-scanner`. This repository is the product; it is not nested under another directory.
 
-Phases 0 through 6 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, flip repricing, the Cboe delayed-quotes parser, the America/Chicago session clock, the Webull OpenAPI adapter, the fixture-universe rank, SQLite replay, a local dashboard, TradingView level export, webhook alerts, and the pre-registered validation report. A live Cboe download requires `--network`. A Webull download requires sandbox keys in the environment and is not part of `pytest`. No script places orders. The 2026-11-17 report has no chain history in the window, so the dashboard badge stays unvalidated hypothesis.
+Phases 0 through 6 are in this tree: the project scaffold, the methodology docs, the offline GEX engine, flip repricing, the Cboe delayed-quotes parser, the America/Chicago session clock, the Webull OpenAPI adapter, the fixture-universe rank, SQLite replay, a local dashboard, TradingView level export, webhook alerts, and the pre-registered validation report. An Alpaca market-data adapter sits beside Webull and does not replace it. A live Cboe download requires `--network`. A Webull download requires sandbox keys in the environment and is not part of `pytest`. An Alpaca download requires `ALPACA_API_KEY` and `ALPACA_API_SECRET` and is not part of `pytest`. No script places orders. The 2026-11-17 report has no chain history in the window, so the dashboard badge stays unvalidated hypothesis.
 
 This is not an auto-trader. There is no order-placement code. Do not put production Webull keys in the environment for this phase. Sandbox is the default written in `.env.example` for a later adapter.
 
@@ -20,13 +20,14 @@ pytest
 python scripts/gex_fixture.py tests/fixtures/spy_chain.json
 python scripts/cboe_snapshot.py --fixture tests/fixtures/recorded/cboe_nok_delayed.json
 python scripts/webull_snapshot.py
+python scripts/alpaca_snapshot.py
 python scripts/scan_fixtures.py
 python scripts/export_tv.py tests/fixtures/spx_chain.json
 python scripts/dashboard.py
 python scripts/validate_history.py
 ```
 
-`webull_snapshot.py` with empty keys prints a line and exits. It downloads one symbol only when `WEBULL_APP_KEY` and `WEBULL_APP_SECRET` are set and `WEBULL_ENVIRONMENT` is `sandbox`.
+`webull_snapshot.py` with empty keys prints a line and exits. It downloads one symbol only when `WEBULL_APP_KEY` and `WEBULL_APP_SECRET` are set and `WEBULL_ENVIRONMENT` is `sandbox`. `alpaca_snapshot.py` does the same when `ALPACA_API_KEY` or `ALPACA_API_SECRET` is empty, and it requests market data only.
 
 `scan_fixtures.py` ranks `config/universe.toml` against `tests/fixtures/` and writes `data/scanner.sqlite`. Symbols with no fixture are skipped. `dashboard.py` serves that file on `127.0.0.1:8765`. `validate_history.py` rewrites `docs/backtests/2026-11-17-validation.md` from the files on disk. It does not download a chain.
 
