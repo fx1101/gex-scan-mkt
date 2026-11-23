@@ -2,7 +2,7 @@
 
 Prices, rate limits, and vendor plan notes in this file are copied from the project research note dated **2026-11-15** (America/Chicago). That note checked official docs or the GitHub API on that date and marked anything it did not verify. Those cells were not re-checked on 2026-11-16. Two later reads are dated where they appear: a Cboe delayed-quotes payload saved on 2026-11-16, and the NYSE holiday table cited in `docs/SESSIONS.md`. Nothing below adds a price or a rate limit the 2026-11-15 note did not already record.
 
-Tests use `tests/fixtures/` and block sockets. Live Cboe download is opt-in (`--network`) and is not part of the test run. There is no order-placement client and no Webull adapter.
+Tests use `tests/fixtures/` and block sockets. Live Cboe download is opt-in (`--network`) and is not part of the test run. There is no order-placement client. The Webull and Alpaca adapters read market data only.
 
 ## What the engine needs from a chain
 
@@ -33,6 +33,24 @@ The capability probe asks the contract list about SPX, SPXW (root on SPX), NDX, 
 `scripts/webull_snapshot.py` is the dry run. Empty `WEBULL_APP_KEY` or `WEBULL_APP_SECRET` exits without importing the SDK and without a socket. `WEBULL_ENVIRONMENT` must be `sandbox`; anything else is refused. When sandbox keys are set it imports `webull-openapi-python-sdk` and uses that package's US region table. This repository does not embed an API host and does not construct a trade client.
 
 `tests/fixtures/recorded/webull_spy_chain.json` is a redacted example. The field names are the ones in `webull-inc/webull-openapi-python-sdk` and `webull-openapi-mcp` as read on 2026-11-16. It is not a capture from an account, and it contains no app key, app secret, or token.
+
+### Alpaca Market Data
+
+Read on 2026-11-22 from the public docs, not from a live call: [option chain](https://docs.alpaca.markets/us/reference/optionchain), [option snapshots](https://docs.alpaca.markets/us/reference/optionsnapshots), and [About Market Data API](https://docs.alpaca.markets/us/docs/about-market-data-api). Dollar prices on that About page were not copied here. Re-check them before treating a plan as an invoice.
+
+`gex_scanner.adapters.alpaca` requests only `https://data.alpaca.markets`.
+
+- Chain: `GET /v1beta1/options/snapshots/{underlying}` with an explicit `feed`. The dry run sends `indicative`. `opra` is not assumed. The snapshot object maps `latestQuote` (`bp`, `ap`, `t`), `latestTrade` (`p`, and `s` as last-trade size, flagged `volume_is_last_trade_size`), `impliedVolatility`, and `greeks` (`delta`, `gamma`, `theta`, `vega`, `rho`) when those values are numbers.
+- Spot for a US equity or ETF: `GET /v2/stocks/{symbol}/trades/latest?feed=iex`. `spot_field` is `iex`. That print is one venue, not the consolidated tape.
+- Auth: `ALPACA_API_KEY` and `ALPACA_API_SECRET` are mapped inside the adapter to `APCA-API-KEY-ID` and `APCA-API-SECRET-KEY`. The dry-run script does not name those headers.
+- The published snapshot schema does not include open interest. `open_interest` and `open_interest_date` are copied only when a payload includes them. The contracts list that carries those fields on Alpaca's trading host is not called. A null open interest is not stored as zero. Missing `greeks` stays null and is flagged `missing_greeks`. The adapter does not compute Black-Scholes gamma.
+- Multiplier uses `size` when the payload has it. A missing multiplier is stored as 100 and flagged `multiplier_not_in_payload`. Style is copied from `style` when it is `american` or `european`. Settlement is not inferred.
+- Scope is US equity and ETF underlyings, filtered to ±15% of spot and 30 calendar days. NDX, RUT, SPX, and futures symbols raise `CoverageError` before a request. `futures` on the snapshot is empty. There is no order path and no websocket.
+- The token bucket uses 200 calls per minute, the Basic historical figure in the 2026-11-22 read of the About page. HTTP 429 backs off. HTTP 401 and 403 are entitlement errors.
+
+`scripts/alpaca_snapshot.py` prints a line and exits when either Alpaca env value is empty. It does not open a socket in that case.
+
+`tests/fixtures/recorded/alpaca_spy_chain.json` is a field example built from those public schemas. It is not an account capture.
 
 ### TradingView
 

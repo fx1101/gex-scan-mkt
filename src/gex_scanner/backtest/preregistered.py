@@ -556,6 +556,12 @@ def inventory_history(root: Path) -> dict:
             elif name.startswith("webull_"):
                 reason = "Redacted field example. Not an account capture and not a session path."
                 stamp = str(payload.get("as_of", ""))
+            elif name.startswith("alpaca_"):
+                reason = (
+                    "Field example for the Alpaca parser. "
+                    "Not a live capture and not a session path."
+                )
+                stamp = str(payload.get("as_of", ""))
             else:
                 reason = "Recorded file is not a chain-session archive."
                 stamp = ""
