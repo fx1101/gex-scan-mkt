@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from gex_scanner.alerts.webhooks import ingest_tradingview
 from gex_scanner.dashboard.render import render_index, render_symbol
@@ -22,23 +22,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
         data = body.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
-        if path == "/":
+        parsed = urlparse(self.path)
+        if parsed.path == "/":
             self._send(200, render_index(self.store.latest_rows()))
             return
         prefix = "/symbol/"
-        if path.startswith(prefix):
-            symbol = unquote(path[len(prefix) :]).upper()
+        if parsed.path.startswith(prefix):
+            symbol = unquote(parsed.path[len(prefix) :]).upper()
             row = self.store.latest(symbol)
             if row is None:
                 self._send(404, "not found")
                 return
-            self._send(200, render_symbol(row))
+            expiry = parse_qs(parsed.query).get("expiry", ["all"])[0]
+            self._send(200, render_symbol(row, expiry=expiry))
             return
         self._send(404, "not found")
 

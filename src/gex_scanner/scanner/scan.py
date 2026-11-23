@@ -46,6 +46,35 @@ class ExpiryBar:
 
 
 @dataclass(frozen=True)
+class CurvePoint:
+    spot: float
+    net_gex: float
+
+
+@dataclass(frozen=True)
+class ExpiryView:
+    """One expiry filter: walls, primary flip, strike bars, and the reprice curve."""
+
+    expiry_filter: str
+    net_gex: float
+    flip: float | None
+    call_wall: float | None
+    put_wall: float | None
+    no_crossing_in_band: bool
+    strikes: tuple[StrikeBar, ...]
+    curve: tuple[CurvePoint, ...]
+
+
+# Chips on the symbol page. Monthly stays in the engine and is not a chip.
+CHIP_FILTERS: tuple[ExpiryFilter, ...] = (
+    ExpiryFilter.ALL,
+    ExpiryFilter.ZERO_DTE,
+    ExpiryFilter.LTE_7D,
+    ExpiryFilter.LTE_30D,
+)
+
+
+@dataclass(frozen=True)
 class RankRow:
     underlying: str
     snapshot_id: str
@@ -93,6 +122,7 @@ class RankRow:
     badge: str
     strikes: tuple[StrikeBar, ...]
     expiries: tuple[ExpiryBar, ...]
+    views: tuple[ExpiryView, ...]
     unit: str
     disclaimer: str
 
@@ -120,6 +150,32 @@ def _bars(strikes: tuple[StrikeGex, ...]) -> tuple[StrikeBar, ...]:
             net_gex=item.net_gex,
         )
         for item in strikes
+    )
+
+
+def _expiry_view(snapshot: ChainSnapshot, config: EngineConfig) -> ExpiryView:
+    gex = compute_symbol_gex(snapshot, config)
+    flip = compute_flip(snapshot, config)
+    return ExpiryView(
+        expiry_filter=config.expiry_filter.value,
+        net_gex=gex.net_gex,
+        flip=flip.primary_flip,
+        call_wall=_wall_strike(gex.call_wall),
+        put_wall=_wall_strike(gex.put_wall),
+        no_crossing_in_band=flip.no_crossing_in_band,
+        strikes=_bars(gex.strikes),
+        curve=tuple(
+            CurvePoint(spot=spot, net_gex=net)
+            for spot, net in zip(flip.grid_spots, flip.grid_net, strict=True)
+        ),
+    )
+
+
+def expiry_views(snapshot: ChainSnapshot, config: EngineConfig) -> tuple[ExpiryView, ...]:
+    """The four chip filters. The scan's own filter still drives the rank."""
+
+    return tuple(
+        _expiry_view(snapshot, replace(config, expiry_filter=filt)) for filt in CHIP_FILTERS
     )
 
 
@@ -328,6 +384,7 @@ def scan_universe(
                 badge=current_badge(),
                 strikes=item["strikes"],
                 expiries=item["expiries"],
+                views=expiry_views(snapshot, engine),
                 unit=gex.unit,
                 disclaimer=gex.disclaimer,
             )

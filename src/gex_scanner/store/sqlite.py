@@ -9,7 +9,7 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
-from gex_scanner.scanner.scan import ExpiryBar, RankRow, StrikeBar
+from gex_scanner.scanner.scan import CurvePoint, ExpiryBar, ExpiryView, RankRow, StrikeBar
 from gex_scanner.sessions.basis import SessionBasis
 
 _SCHEMA = """
@@ -87,10 +87,59 @@ def _row_to_json(row: RankRow) -> dict:
             for bar in row.strikes
         ],
         "expiries": [{"expiry": bar.expiry, "net_gex": bar.net_gex} for bar in row.expiries],
+        "views": [_view_to_json(view) for view in row.views],
         "unit": row.unit,
         "disclaimer": row.disclaimer,
     }
     return payload
+
+
+def _bars_from_json(items: list[dict]) -> tuple[StrikeBar, ...]:
+    return tuple(
+        StrikeBar(
+            strike=item["strike"],
+            call_gex=item["call_gex"],
+            put_gex=item["put_gex"],
+            net_gex=item["net_gex"],
+        )
+        for item in items
+    )
+
+
+def _view_to_json(view: ExpiryView) -> dict:
+    return {
+        "expiry_filter": view.expiry_filter,
+        "net_gex": view.net_gex,
+        "flip": view.flip,
+        "call_wall": view.call_wall,
+        "put_wall": view.put_wall,
+        "no_crossing_in_band": view.no_crossing_in_band,
+        "strikes": [
+            {
+                "strike": bar.strike,
+                "call_gex": bar.call_gex,
+                "put_gex": bar.put_gex,
+                "net_gex": bar.net_gex,
+            }
+            for bar in view.strikes
+        ],
+        "curve": [{"spot": point.spot, "net_gex": point.net_gex} for point in view.curve],
+    }
+
+
+def _view_from_json(payload: dict) -> ExpiryView:
+    return ExpiryView(
+        expiry_filter=payload["expiry_filter"],
+        net_gex=payload["net_gex"],
+        flip=payload["flip"],
+        call_wall=payload["call_wall"],
+        put_wall=payload["put_wall"],
+        no_crossing_in_band=payload["no_crossing_in_band"],
+        strikes=_bars_from_json(payload["strikes"]),
+        curve=tuple(
+            CurvePoint(spot=point["spot"], net_gex=point["net_gex"]) for point in payload["curve"]
+        ),
+    )
 
 
 def row_from_json(payload: dict) -> RankRow:
@@ -139,19 +188,12 @@ def row_from_json(payload: dict) -> RankRow:
         reused_us_map=payload["reused_us_map"],
         note=payload["note"],
         badge=payload["badge"],
-        strikes=tuple(
-            StrikeBar(
-                strike=item["strike"],
-                call_gex=item["call_gex"],
-                put_gex=item["put_gex"],
-                net_gex=item["net_gex"],
-            )
-            for item in payload["strikes"]
-        ),
+        strikes=_bars_from_json(payload["strikes"]),
         expiries=tuple(
             ExpiryBar(expiry=item["expiry"], net_gex=item["net_gex"])
             for item in payload["expiries"]
         ),
+        views=tuple(_view_from_json(item) for item in payload.get("views", [])),
         unit=payload["unit"],
         disclaimer=payload["disclaimer"],
     )
