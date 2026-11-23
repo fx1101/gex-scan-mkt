@@ -29,7 +29,7 @@ python scripts/validate_history.py
 
 `webull_snapshot.py` with empty keys prints a line and exits. It downloads one symbol only when `WEBULL_APP_KEY` and `WEBULL_APP_SECRET` are set and `WEBULL_ENVIRONMENT` is `sandbox`. `alpaca_snapshot.py` does the same when `ALPACA_API_KEY` or `ALPACA_API_SECRET` is empty, and it requests market data only.
 
-`scan_fixtures.py` ranks `config/universe.toml` against `tests/fixtures/` and writes `data/scanner.sqlite`. Symbols with no fixture are skipped. `dashboard.py` serves that file on `127.0.0.1:8765`. `validate_history.py` rewrites `docs/backtests/2026-11-17-validation.md` from the files on disk. It does not download a chain.
+`scan_fixtures.py` ranks `config/universe.toml` against `tests/fixtures/` and writes `data/scanner.sqlite`. Symbols with no fixture are skipped. `dashboard.py` serves that file on `127.0.0.1:8765`. Stop an older server with Ctrl-C, then start this one with `python scripts/dashboard.py`. Refresh on the page re-reads the SQLite file. It does not call Alpaca or Webull. `validate_history.py` rewrites `docs/backtests/2026-11-17-validation.md` from the files on disk. It does not download a chain.
 
 ## TradingView levels
 
